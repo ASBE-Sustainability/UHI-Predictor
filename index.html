@@ -44,6 +44,11 @@
         button:disabled { background-color: #9ca3af; cursor: not-allowed; opacity: 0.7; }
         .spinner { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* Styles for About Panel */
+        #about-panel h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.25rem; }
+        #about-panel p, #about-panel li { font-size: 0.875rem; color: #4b5563; line-height: 1.5; }
+        #about-panel ul { list-style-type: disc; padding-left: 1.5rem; margin-top: 0.5rem; }
+        #about-panel strong { color: #1f2937; }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -52,8 +57,9 @@
 
     <div class="info-panel">
         <div class="flex flex-col space-y-4">
-            <h1 class="text-xl font-bold text-gray-800">UHI Predicter by ASBEE</h1>
-            <p class="text-sm text-gray-600">
+            <img src="logo1.jpeg" alt="ASBEE Logo" class="h-16 w-auto object-contain mx-auto mb-2">
+            <h1 class="text-xl font-bold text-gray-800 text-center">UHI Predicter by ASBEE</h1>
+            <p class="text-sm text-gray-600 text-center -mt-3">
                 Define building geometry, generate a 3D model, then run a UHI simulation.
             </p>
 
@@ -77,6 +83,7 @@
                     <button id="tab-nolli" class="whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-sm border-blue-500 text-blue-600">Nolli Map</button>
                     <button id="tab-3d" class="whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">3D Model</button>
                     <button id="tab-uhi" class="whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 disabled:opacity-50 disabled:hover:border-transparent disabled:cursor-not-allowed" disabled>UHI Simulation</button>
+                    <button id="tab-about" class="whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">About</button>
                 </nav>
             </div>
             
@@ -149,6 +156,31 @@
                      <canvas id="uhi-chart"></canvas>
                 </div>
             </div>
+
+            <div id="about-panel" class="space-y-2 hidden">
+                <h3>About the Tool</h3>
+                <p>The <strong>UHI Predicter by ASBEE</strong> is an interactive web tool designed for architects, urban planners, and students to explore the relationship between urban form and the Urban Heat Island (UHI) effect. It provides a simplified, visual method to assess how changes in urban geometry and material properties can influence local temperatures.</p>
+                <p>This tool was created by <strong>Milan Ben</strong> as an aid for sustainable building and environmental engineering education.</p>
+                
+                <h3>Calculations & Variables</h3>
+                <p>The tool uses a simplified parametric model, not a full physics-based simulation. The Urban Temperature is calculated as the baseline Rural Temperature (from the EPW file) plus a calculated UHI Effect.</p>
+                <ul>
+                    <li><strong>Urban Form:</strong> Key metrics like Building Density, Aspect Ratio, and Surface-to-Volume Ratio are calculated from the building geometry you define on the map.</li>
+                    <li><strong>Daytime UHI Effect:</strong> Calculated based on solar energy absorbed by surfaces (factoring in albedo), heat trapped by urban geometry (density and aspect ratio), cooling from green cover, and an estimate for anthropogenic (human-caused) heat.</li>
+                    <li><strong>Nighttime UHI Effect:</strong> Calculated based on the slow release of heat stored in the urban fabric during the day, plus ongoing anthropogenic heat.</li>
+                    <li><strong>Key Inputs:</strong> Building Albedo, Pavement Albedo, Green Cover Ratio, and Window-to-Wall Ratio directly influence the energy balance calculations.</li>
+                </ul>
+
+                <h3>Assumptions & Limitations</h3>
+                <ul>
+                    <li><strong>Simplified Physics:</strong> This is an educational and exploratory tool. It uses simplified relationships to estimate UHI and is not a substitute for detailed scientific simulations like Computational Fluid Dynamics (CFD).</li>
+                    <li><strong>Uniform Properties:</strong> All buildings are assumed to have the same average height and albedo. Pavements are also assumed to have a single albedo value.</li>
+                    <li><strong>No Wind or Humidity:</strong> The model does not account for the significant effects of wind (which can dissipate heat) or humidity on thermal comfort.</li>
+                    <li><strong>Basic Anthropogenic Heat:</strong> The heat from traffic, HVAC systems, and human activity is represented by a very basic proxy based on density and WWR.</li>
+                    <li><strong>Data Dependency:</strong> The accuracy of the results depends entirely on the quality of the underlying OpenStreetMap data and the selected EPW weather file.</li>
+                </ul>
+                <p class="mt-4 text-xs text-gray-400">AI-assisted development: This tool's code and explanatory text were generated with assistance from Google's Gemini.</p>
+            </div>
         </div>
     </div>
     
@@ -182,10 +214,12 @@
         const tabNolli = document.getElementById('tab-nolli');
         const tab3D = document.getElementById('tab-3d');
         const tabUhi = document.getElementById('tab-uhi');
+        const tabAbout = document.getElementById('tab-about');
         // Panels
         const nolliPanel = document.getElementById('nolli-panel');
         const threeDPanel = document.getElementById('3d-panel');
         const uhiPanel = document.getElementById('uhi-panel');
+        const aboutPanel = document.getElementById('about-panel');
         // Nolli elements
         const generateNolliBtn = document.getElementById('generate-nolli-btn');
         const nolliContainer = document.getElementById('nolli-container');
@@ -403,8 +437,8 @@
         generate3dBtn.addEventListener('click', generate3DModel);
 
         function switchTab(activeTabId) {
-            const tabs = [tabNolli, tab3D, tabUhi];
-            const panels = [nolliPanel, threeDPanel, uhiPanel];
+            const tabs = [tabNolli, tab3D, tabUhi, tabAbout];
+            const panels = [nolliPanel, threeDPanel, uhiPanel, aboutPanel];
             
             tabs.forEach((tab, index) => {
                 const panel = panels[index];
@@ -423,6 +457,7 @@
         tabNolli.addEventListener('click', () => switchTab('nolli'));
         tab3D.addEventListener('click', () => switchTab('3d'));
         tabUhi.addEventListener('click', () => switchTab('uhi'));
+        tabAbout.addEventListener('click', () => switchTab('about'));
         
         // --- UHI Simulation Logic ---
         function parseEPW(text) {
@@ -612,5 +647,4 @@
     </script>
 </body>
 </html>
-
 
